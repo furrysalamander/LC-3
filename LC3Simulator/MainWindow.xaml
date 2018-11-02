@@ -1,0 +1,44 @@
+﻿<Window x:Class="LC3Simulator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LC3Simulator"
+        mc:Ignorable="d"
+        Title="LC-3 Simulator" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="consoleOut" HorizontalAlignment="Left" Height="171" TextWrapping="Wrap" VerticalAlignment="Top" Width="347" FontFamily="Lucida Console" AcceptsTab="True" AcceptsReturn="True" Foreground="White" Background="Black" Margin="435,10,0,0" Cursor="IBeam" IsReadOnly="True" FontSize="14"/>
+        <Button x:Name="execute" Content="Execute" HorizontalAlignment="Left" Margin="316,73,0,0" VerticalAlignment="Top" Width="90" Click="Execute_Click"/>
+        <RichTextBox x:Name="program" HorizontalAlignment="Left" Height="399" Margin="10,10,0,0" VerticalAlignment="Top" Width="279" FontFamily="Lucida Console" FontSize="14" AcceptsTab="True" VerticalScrollBarVisibility="Auto" Block.LineHeight="6" TextChanged="program_TextChanged">
+            <FlowDocument>
+                <Paragraph>
+                    <Run Text=""/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+        <TextBox x:Name="registerZeroBox" HorizontalAlignment="Left" Height="23" Margin="468,299,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerOneBox" HorizontalAlignment="Left" Height="23" Margin="468,327,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerTwoBox" HorizontalAlignment="Left" Height="23" Margin="468,355,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerThreeBox" HorizontalAlignment="Left" Height="23" Margin="468,383,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerOne_Copy4" HorizontalAlignment="Left" Height="23" Margin="656,299,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerFourBox" HorizontalAlignment="Left" Height="23" Margin="656,299,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerFiveBox" HorizontalAlignment="Left" Height="23" Margin="656,327,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerSixBox" HorizontalAlignment="Left" Height="23" Margin="656,355,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <TextBox x:Name="registerSevenBox" HorizontalAlignment="Left" Height="23" Margin="656,383,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <Label x:Name="r0T" Content="Register 0" HorizontalAlignment="Left" Margin="401,299,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="r1T" Content="Register 1" HorizontalAlignment="Left" Margin="401,327,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="r1T_Copy1" Content="Register 2" HorizontalAlignment="Left" Margin="401,355,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="r1T_Copy2" Content="Register 3" HorizontalAlignment="Left" Margin="401,383,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.258,-2.885"/>
+        <Label x:Name="r1T_Copy3" Content="Register 4" HorizontalAlignment="Left" Margin="589,299,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="r1T_Copy4" Content="Register 5" HorizontalAlignment="Left" Margin="589,327,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="r1T_Copy5" Content="Register 6" HorizontalAlignment="Left" Margin="589,355,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="r1T_Copy6" Content="Register 7" HorizontalAlignment="Left" Margin="589,383,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.258,-2.885"/>
+        <Button x:Name="clear" Content="Clear Console" HorizontalAlignment="Left" Margin="316,98,0,0" VerticalAlignment="Top" Width="90" Click="clear_Click"/>
+        <TextBox x:Name="prgCounter" HorizontalAlignment="Left" Height="23" Margin="468,271,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+        <Label x:Name="prgCounterT" Content="Program Counter" HorizontalAlignment="Left" Margin="362,268,0,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>
