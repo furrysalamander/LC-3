@@ -12,12 +12,19 @@ Honestly, at this point it's really buggy.  But hey, at least it doesn't crash a
 Roadmap:
 
 Ensure that the program counter jumps correctly
+
 TRAP character input
+
 Overhaul the form so that all of the boxes work correctly
+
 Saving and restoring memory dumps
+
 Stepping through programs
+
 RTI opcode
+
 An assembler!
+
 Saving and loading programs
 
 Other things as requested...
