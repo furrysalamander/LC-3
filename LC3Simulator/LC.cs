@@ -24,6 +24,7 @@ namespace LC3Simulator
 
         public void ParseMachineCode(short command)
         {
+            programCounter += 1;
             outCharFlag = false;
 
             short opcode = (short)((command >> 12) & 0b1111);
@@ -73,12 +74,11 @@ namespace LC3Simulator
                     if ((nzp[0] && n )|| (nzp[1] && z) || (nzp[2] && p) || (n && p && z))
                     {
                         programCounter += pc9;
-                        return;
                     }
                     break;
                 case 0b1100: // JMP and RET
                     programCounter = registers[SR];
-                    return;
+                    break;
                 case 0b0100: // JSR and JSRR
                     if ((DR & 0b100) == 1)
                     {
@@ -87,7 +87,7 @@ namespace LC3Simulator
                     }
                     else
                         programCounter = registers[SR];
-                    return;
+                    break;
                 case 0b0010: // LD
                     registers[DR] = memory[programCounter + pc9];
                     break;
@@ -136,7 +136,6 @@ namespace LC3Simulator
 
                     break;
             }
-            programCounter += 1;
         }
         
 
@@ -152,6 +151,15 @@ namespace LC3Simulator
             nzp[0] = value < 0;
             nzp[1] = value == 0;
             nzp[2] = value > 0;
+        }
+
+        public void ClearRegisters()
+        {
+            for (int i = 0; i < registers.Length; i++)
+            {
+                registers[i] = 0;
+            }
+            
         }
     }
 }

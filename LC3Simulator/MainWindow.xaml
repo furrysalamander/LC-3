@@ -36,9 +36,11 @@
         <Label x:Name="r1T_Copy4" Content="Register 5" HorizontalAlignment="Left" Margin="589,327,0,0" VerticalAlignment="Top"/>
         <Label x:Name="r1T_Copy5" Content="Register 6" HorizontalAlignment="Left" Margin="589,355,0,0" VerticalAlignment="Top"/>
         <Label x:Name="r1T_Copy6" Content="Register 7" HorizontalAlignment="Left" Margin="589,383,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.258,-2.885"/>
-        <Button x:Name="clear" Content="Clear Console" HorizontalAlignment="Left" Margin="316,98,0,0" VerticalAlignment="Top" Width="90" Click="clear_Click"/>
+        <Button x:Name="clear" Content="Clear Console" HorizontalAlignment="Left" Margin="316,98,0,0" VerticalAlignment="Top" Width="90" Click="Clear_Click"/>
         <TextBox x:Name="prgCounter" HorizontalAlignment="Left" Height="23" Margin="468,271,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
         <Label x:Name="prgCounterT" Content="Program Counter" HorizontalAlignment="Left" Margin="362,268,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="prgRst" Content="Reset PC" HorizontalAlignment="Left" Margin="316,123,0,0" VerticalAlignment="Top" Width="90" Click="prgRst_Click"/>
+        <Button x:Name="step" Content="Step" HorizontalAlignment="Left" Margin="316,148,0,0" VerticalAlignment="Top" Width="90" Click="step_Click"/>
 
     </Grid>
 </Window>
