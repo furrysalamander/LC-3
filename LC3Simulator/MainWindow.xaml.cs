@@ -14,10 +14,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
 
-using System.Security;
-using System.Runtime.InteropServices;
-using System.Diagnostics.CodeAnalysis;
-
 namespace LC3Simulator
 {
     /// <summary>
@@ -26,61 +22,32 @@ namespace LC3Simulator
     public partial class MainWindow : Window
     {
         LC computer = new LC();
+        bool executingFlag;
 
         public MainWindow()
         {
             InitializeComponent();
-            
-            // computer.r1 = 5;
+
         }
 
         private void Execute_Click(object sender, RoutedEventArgs e)
         {
-            computer.programCounter = 0;
-            computer.halt = false;
-            string inProgram = StringFromRichTextBox(program);
+            executingFlag = true;
+            loadMachineCode();
+            ExecuteCode();
+        }
 
-            string[] commands = Regex.Split(inProgram, "\r\n");
-            Array.Resize<string>(ref commands, commands.Length - 1); // Removes the empty line at end of array
-
-
-            foreach (string command in commands)
-            {
-                foreach (char test in command)
-                {
-                    if ((test != '1') && (test != '0'))
-                    {
-                        MessageBox.Show("Invalid characters in input! (Character: " + test + ')');
-                        return;
-                    }
-                }
-                if (command.Length != 16)
-                {
-                    MessageBox.Show("Input has invalid command lengths!");
-                    return;
-                }
-            }
-            for (int i = 0; i < commands.Length; i++)
-            {
-                computer.memory[i] = Convert.ToInt16(commands[i], 2);
-            }
+        private void ExecuteCode()
+        {
             while (!computer.halt && (computer.programCounter < computer.memory.Length))
             {
                 computer.ParseMachineCode(computer.memory[computer.programCounter]);
-                prgCounter.Text = Convert.ToString(computer.programCounter);
-                
-                /*if (computer.outCharFlag)
-                {
-                    consoleText += computer.outChar;
-                }*/
-                //consoleOut.Text = computer.registers[1].ToString();
+                TrapFlags();
+                //prgCounter.Text = Convert.ToString(computer.programCounter);
             }
             //consoleOut.Text = consoleText;
             updateRegText();
-            if (computer.halt) Console.WriteLine("Halted!");
-            else Console.WriteLine("End of Memory Reached!");
-            //if (computer.halt) consoleOut.Text += " Halted!";
-            //else consoleOut.Text += " End of memory!";
+            if (computer.programCounter == computer.memory.Length - 1) consoleOut.Text += " End of Memory Reached!";
         }
 
         private void updateRegText()
@@ -112,7 +79,6 @@ namespace LC3Simulator
 
         private void program_TextChanged(object sender, TextChangedEventArgs e)
         {
-
         }
 
         private void Clear_Click(object sender, RoutedEventArgs e)
@@ -129,9 +95,113 @@ namespace LC3Simulator
 
         private void step_Click(object sender, RoutedEventArgs e)
         {
+            executingFlag = false;
+            if (computer.halt == false)
+            {
+                Step();
+            }
+            else
+                MessageBox.Show("Can't step over halt!");
+
+        }
+
+        private void Step()
+        {
             computer.ParseMachineCode(computer.memory[computer.programCounter]);
-            prgCounter.Text = Convert.ToString(computer.programCounter);
+            TrapFlags();
             updateRegText();
+        }
+
+        private void consoleOut_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!consoleOut.IsReadOnly)
+            {
+                consoleOut.IsReadOnly = true;
+                computer.registers[0] = (short)consoleOut.Text[consoleOut.Text.Length - 1];
+                consoleOut.Text += '\n';
+                computer.halt = false;
+                if (executingFlag)
+                    ExecuteCode();
+                else
+                    Step();
+            }
+        }
+
+        public void TrapFlags()
+        {
+            switch (computer.trapFlag)
+            {
+                case 0x20: // GETC
+
+                    break;
+                case 0x21: // OUT
+                    consoleOut.Text += (char)computer.registers[0];
+                    break;
+                case 0x22: // PUTS
+                    int i = 0;
+                    while (computer.memory[computer.registers[0] + i] != 0)
+                    {
+                        consoleOut.Text += (char)computer.memory[computer.registers[0] + i];
+                        i++;
+                    }
+                    break;
+                case 0x23:  // IN
+                    consoleOut.Text += "\nInput a character>";
+                    consoleOut.IsReadOnly = false;
+                    computer.halt = true;
+                    break;
+                case 0x24:  // PUTSP
+
+                    break;
+                case 0x25: // HALT
+                    consoleOut.Text += " Halted!\n";
+                    computer.halt = true;
+                    break;
+            }
+            if (computer.trapFlag != 0)
+                computer.trapFlag = 0;
+        }
+
+        private void load_Click(object sender, RoutedEventArgs e)
+        {
+            loadMachineCode();
+        }
+
+        private void loadMachineCode()
+        {
+            computer.programCounter = 0;
+            computer.halt = false;
+            string inProgram = program.Text;
+
+            string[] commands = Regex.Split(inProgram, "\r\n");
+            Array.Resize<string>(ref commands, commands.Length - 1); // Removes the empty line at end of array
+
+
+            foreach (string command in commands)
+            {
+                foreach (char test in command)
+                {
+                    if ((test != '1') && (test != '0'))
+                    {
+                        MessageBox.Show("Invalid characters in input! (Character: " + test + ')');
+                        return;
+                    }
+                }
+                if (command.Length != 16)
+                {
+                    MessageBox.Show("Input has invalid command lengths!");
+                    return;
+                }
+            }
+            for (int i = 0; i < commands.Length; i++)
+            {
+                computer.memory[i] = Convert.ToInt16(commands[i], 2);
+            }
+            //dataGrid.ItemsSource = computer.memory;
+        }
+
+        private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
 
         }
     }

@@ -5,20 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LC3Simulator"
         mc:Ignorable="d"
-        Title="LC-3 Simulator" Height="450" Width="800">
+        Title="LC-3 Simulator" Height="604" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <TextBox x:Name="consoleOut" HorizontalAlignment="Left" Height="171" TextWrapping="Wrap" VerticalAlignment="Top" Width="347" FontFamily="Lucida Console" AcceptsTab="True" AcceptsReturn="True" Foreground="White" Background="Black" Margin="435,10,0,0" Cursor="IBeam" IsReadOnly="True" FontSize="14"/>
+        <TextBox x:Name="consoleOut" HorizontalAlignment="Left" Height="171" TextWrapping="Wrap" VerticalAlignment="Top" Width="347" FontFamily="Lucida Console" AcceptsTab="True" AcceptsReturn="True" Foreground="White" Background="Black" Margin="435,10,0,0" Cursor="IBeam" IsReadOnly="True" FontSize="14" TextChanged="consoleOut_TextChanged" VerticalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True">
+            <TextBox.CaretBrush>
+                <ImageBrush/>
+            </TextBox.CaretBrush>
+        </TextBox>
         <Button x:Name="execute" Content="Execute" HorizontalAlignment="Left" Margin="316,73,0,0" VerticalAlignment="Top" Width="90" Click="Execute_Click"/>
-        <RichTextBox x:Name="program" HorizontalAlignment="Left" Height="399" Margin="10,10,0,0" VerticalAlignment="Top" Width="279" FontFamily="Lucida Console" FontSize="14" AcceptsTab="True" VerticalScrollBarVisibility="Auto" Block.LineHeight="6" TextChanged="program_TextChanged">
-            <FlowDocument>
-                <Paragraph>
-                    <Run Text=""/>
-                </Paragraph>
-            </FlowDocument>
-        </RichTextBox>
         <TextBox x:Name="registerZeroBox" HorizontalAlignment="Left" Height="23" Margin="468,299,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
         <TextBox x:Name="registerOneBox" HorizontalAlignment="Left" Height="23" Margin="468,327,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
         <TextBox x:Name="registerTwoBox" HorizontalAlignment="Left" Height="23" Margin="468,355,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
@@ -41,6 +38,8 @@
         <Label x:Name="prgCounterT" Content="Program Counter" HorizontalAlignment="Left" Margin="362,268,0,0" VerticalAlignment="Top"/>
         <Button x:Name="prgRst" Content="Reset PC" HorizontalAlignment="Left" Margin="316,123,0,0" VerticalAlignment="Top" Width="90" Click="prgRst_Click"/>
         <Button x:Name="step" Content="Step" HorizontalAlignment="Left" Margin="316,148,0,0" VerticalAlignment="Top" Width="90" Click="step_Click"/>
+        <Button x:Name="load" Content="Load" HorizontalAlignment="Left" Margin="316,48,0,0" VerticalAlignment="Top" Width="90" Click="load_Click"/>
+        <TextBox x:Name="program" HorizontalAlignment="Left" Height="171" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="280" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
 
     </Grid>
 </Window>

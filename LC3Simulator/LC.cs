@@ -14,8 +14,7 @@ namespace LC3Simulator
         public short programCounter;
         bool[] nzp = new bool[3];
 
-        public char outChar;
-        public bool outCharFlag;
+        public int trapFlag;
 
         public LC()
         {
@@ -25,7 +24,6 @@ namespace LC3Simulator
         public void ParseMachineCode(short command)
         {
             programCounter += 1;
-            outCharFlag = false;
 
             short opcode = (short)((command >> 12) & 0b1111);
             int DR = (short)((command >> 9) & 0b111);
@@ -39,12 +37,10 @@ namespace LC3Simulator
             short o6 = (short)(command << 10);
             o6 = (short)(o6 >> 10);
 
-            
-
             switch (opcode)
             {
                 case 0b0001: // ADD
-                    if ((command & 0b100000) == '0')
+                    if ((command & 0b100000) == 0)
                     {
                         registers[DR] = (short)(registers[SR] + registers[SR2]);
                     }
@@ -55,7 +51,7 @@ namespace LC3Simulator
                     SetFlags(registers[DR]);
                     break;
                 case 0b0101: // AND
-                    if ((command & 0b100000) == '0')
+                    if ((command & 0b100000) == 0)
                     {
                         registers[DR] = (short)(registers[SR] & registers[SR2]);
                     }
@@ -90,15 +86,19 @@ namespace LC3Simulator
                     break;
                 case 0b0010: // LD
                     registers[DR] = memory[programCounter + pc9];
+                    SetFlags(registers[DR]);
                     break;
                 case 0b1010: // LDI
                     registers[DR] = memory[memory[programCounter + pc9]];
+                    SetFlags(registers[DR]);
                     break;
                 case 0b0110: // LDR
                     registers[DR] = memory[registers[SR] + o6];
+                    SetFlags(registers[DR]);
                     break;
                 case 0b1110: // LEA
                     registers[DR] = (short)(programCounter + pc9);
+                    SetFlags(registers[DR]);
                     break;
                 case 0b1001: // NOT
                     registers[DR] = (short)(~registers[SR]);
@@ -119,32 +119,13 @@ namespace LC3Simulator
                     memory[registers[SR] + o6] = registers[DR];
                     break;
                 case 0b1111: // TRAP
-                    switch (command & 0b11111111)
-                    {
-                        case 0x25: // Halt Vector
-                            halt = true;
-                            break;
-                        case 0x23: // Input Character
-                            break;
-                        case 0x21: // Output Character
-                            outChar = (char)registers[0];
-                            outCharFlag = true;
-                            break;
-                    }
+                    trapFlag = command & 0b11111111;
                     break;
                 case 0b1101: // RESERVED
 
                     break;
             }
         }
-        
-
-        // No longer needed, sign extension is done with bitshifts.
-        /*private short Sext(string inInt)
-        {
-            inInt.PadLeft(16, inInt[0]);
-            return Convert.Toshort(inInt, 2);
-        }//*////*
 
         private void SetFlags(int value)
         {
@@ -161,5 +142,6 @@ namespace LC3Simulator
             }
             
         }
+
     }
 }
