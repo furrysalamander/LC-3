@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace LC3Simulator
 {
@@ -67,7 +68,7 @@ namespace LC3Simulator
                     bool z = (DR & 0b010) != 0;
                     bool p = (DR & 0b001) != 0;
                     // checks to see if any of the NZP flags have been met before executing the branch
-                    if ((nzp[0] && n )|| (nzp[1] && z) || (nzp[2] && p) || (n && p && z))
+                    if ((nzp[0] && n) || (nzp[1] && z) || (nzp[2] && p) || (n && p && z))
                     {
                         programCounter += pc9;
                     }
@@ -105,7 +106,7 @@ namespace LC3Simulator
                     SetFlags(registers[DR]);
                     break;
                 case 0b1000: // RTI
-                    
+
                     // IMPLEMENT
 
                     break;
@@ -140,8 +141,290 @@ namespace LC3Simulator
             {
                 registers[i] = 0;
             }
-            
+
         }
 
+        public static List<ushort> Assemble(string inString)
+        {
+            int programCounter = 0;
+            int startAddress;
+            //List<short> assembledProgram;
+            List<ushort> machineCode = new List<ushort>();
+
+            inString = inString.Replace("\r", "");
+            inString = inString.ToUpper();
+            List<string> parser = Regex.Replace(inString, ";.*", "").Split('\n').ToList();
+            for (int i = 0; i < parser.Count(); i++)
+            {
+                if (parser[i] == "")
+                {
+                    parser.RemoveAt(i);
+                }
+            }
+            List<List<string>> parsedData = new List<List<string>>();
+            foreach (string value in parser)
+            {
+                parsedData.Add(value.Split().ToList());
+            }
+
+            SymTable symbolTable = new SymTable();
+
+            for (int i = 0; i < parsedData.Count; i++)
+            {
+                //PASS ONE
+                switch (parsedData[i][0])
+                {
+                    case ".ORIG":
+                        startAddress = ConvertNumber(parsedData[i][1]);
+                        break;
+                    case ".END":
+                        break;
+                    case ".BLKW":
+                        programCounter += Convert.ToInt32(parsedData[i][1]);
+                        break;
+                    case ".STRINGZ":
+                        programCounter += parsedData[i][1].Length - 2;
+                        break;
+                    case "BRN":
+                    case "BRNZ":
+                    case "BRNZP":
+                    case "BRZP":
+                    case "BRZ":
+                    case "BRP":
+                    case "BRNP":
+                    case ".FILL":
+                    case "ADD":
+                    case "AND":
+                    case "BR":
+                    case "JMP":
+                    case "RET":
+                    case "JSR":
+                    case "JSRR":
+                    case "LD":
+                    case "LDI":
+                    case "LDR":
+                    case "LEA":
+                    case "NOT":
+                    case "RTI":
+                    case "ST":
+                    case "STI":
+                    case "STR":
+                    case "TRAP":
+                    case "GETC":
+                    case "OUT":
+                    case "IN":
+                    case "PUTS":
+                    case "HALT":
+                        programCounter++;
+                        break;
+                    default:
+                        symbolTable.AddSymbol(parsedData[i][0], programCounter);
+                        // May want to fix this part later, it's kinda sketchy.
+                        if (parsedData[i].Count == 1)
+                        {
+                            parsedData.RemoveAt(i);
+                            i--;
+                        }
+                        else parsedData[i].RemoveAt(0);
+                        break;
+                }
+            }
+
+
+            // PASS 2
+            foreach (List<string> command in parsedData)
+            {
+                ushort outCommand = 0;
+                switch (command[0])
+                {
+                    case ".ORIG":
+                        //    startAddress = ConvertNumber(command[i + 1]);
+                        break;
+                    case ".END":
+                        break;
+                    case ".FILL":
+                        outCommand = ConvertNumber(command[1]);
+                        programCounter++;
+                        break;
+                    case ".BLKW":
+                        break;
+                    case ".STRINGZ":
+                        break;
+                    case "ADD":
+                        outCommand = 0x1000;
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
+                        outCommand |= (ushort)(ConvertRegister(command[2]) << 6);
+                        if (command[3][0] == 'R')
+                        {
+                            outCommand |= (ushort)(ConvertRegister(command[3]));
+                        }
+                        else
+                        {
+                            outCommand |= 0b100000;
+                            outCommand |= (ushort)(ConvertNumber(command[3]));
+                        }
+                        programCounter++;
+                        break;
+                    case "AND":
+                        outCommand = 0x5000;
+                        ushort potato = ConvertRegister(command[1]);
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
+                        outCommand |= (ushort)(ConvertRegister(command[2]) << 6);
+                        if (command[3][0] == 'R')
+                        {
+                            outCommand |= (ushort)(ConvertRegister(command[3]));
+                        }
+                        else
+                        {
+                            outCommand |= 0b100000;
+                            outCommand |= (ushort)(ConvertNumber(command[3]));
+                        }
+                        programCounter++;
+                        break;
+                    case "BR": // THIS NEEDS TO BE FIXED - maybe?
+                    case "BRN":
+                    case "BRNZ":
+                    case "BRNZP":
+                    case "BRZP":
+                    case "BRZ":
+                    case "BRP":
+                    case "BRNP":
+                        outCommand = 0x0000;
+                        programCounter++;
+                        break;
+                    case "JMP":
+                        outCommand = 0xC000;
+                        programCounter++;
+                        break;
+                    case "RET":
+                        outCommand = 0b110000011100000;
+                        programCounter++;
+                        break;
+                    case "JSR":
+                        outCommand = 0x4000;
+                        programCounter++;
+                        break;
+                    case "JSRR":
+                        outCommand = 0x4000;
+                        programCounter++;
+                        break;
+                    case "LD":
+                        outCommand = 0x2000;
+                        programCounter++;
+                        break;
+                    case "LDI":
+                        outCommand = 0xA000;
+                        programCounter++;
+                        break;
+                    case "LDR":
+                        outCommand = 0x6000;
+                        programCounter++;
+                        break;
+                    case "LEA":
+                        outCommand = 0xE000;
+                        programCounter++;
+                        break;
+                    case "NOT":
+                        outCommand = 0x9000;
+                        programCounter++;
+                        break;
+                    case "RTI":
+                        outCommand = 0x8000;
+                        programCounter++;
+                        break;
+                    case "ST":
+                        outCommand = 0x3000;
+                        programCounter++;
+                        break;
+                    case "STI":
+                        outCommand = 0xB000;
+                        programCounter++;
+                        break;
+                    case "STR":
+                        outCommand = 0x7000;
+                        programCounter++;
+                        break;
+                    case "TRAP":
+                        outCommand = 0xF000;
+                        outCommand |= ConvertNumber(command[1]);
+                        programCounter++;
+                        break;
+                    case "GETC":
+                        outCommand = 0xF020;
+                        programCounter++;
+                        break;
+                    case "OUT":
+                        outCommand = 0xF021;
+                        programCounter++;
+                        break;
+                    case "IN":
+                        outCommand = 0xF023;
+                        programCounter++;
+                        break;
+                    case "PUTS":
+                        outCommand = 0xF022;
+                        programCounter++;
+                        break;
+                    case "HALT":
+                        outCommand = 0xF025;
+                        programCounter++;
+                        break;
+                    default:
+                        //blablabla
+                        break;
+                }
+
+                machineCode.Add(outCommand);
+            }
+            return machineCode;
+        }
+
+        private static ushort ConvertNumber(string inString)
+        {
+            switch (inString[0])
+            {
+                case '#':
+                    return (ushort)Convert.ToInt16(inString.Substring(1));
+                case 'B':
+                    return Convert.ToUInt16(inString.Substring(1), 2);
+                case 'X':
+                    return Convert.ToUInt16(inString.Substring(1), 16);
+            }
+            // need to add a throw for try-catch here
+            return 0;
+        }
+
+        private static ushort ConvertRegister(string inString) => Convert.ToUInt16(inString.Substring(1,1));
+
+
     }
+    public class SymTable
+    {
+        private List<string> names;
+        private List<int> addresses;
+
+        public SymTable()
+        {
+            names = new List<string>();
+            addresses = new List<int>();
+        }
+
+        public void AddSymbol(string name, int address)
+        {
+            names.Add(name);
+            addresses.Add(address);
+        }
+        public int GetAddress(string inName)
+        {
+            for (int i = 0; i < names.Count; i++)
+            {
+                if (names[i] == inName)
+                {
+                    return addresses[i];
+                }
+            }
+            throw new IndexOutOfRangeException();
+        }
+    }
+
 }

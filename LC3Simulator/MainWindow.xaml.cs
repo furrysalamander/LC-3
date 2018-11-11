@@ -27,13 +27,12 @@ namespace LC3Simulator
         public MainWindow()
         {
             InitializeComponent();
-
         }
 
         private void Execute_Click(object sender, RoutedEventArgs e)
         {
             executingFlag = true;
-            loadMachineCode();
+            //loadMachineCodeFromText();
             ExecuteCode();
         }
 
@@ -90,6 +89,7 @@ namespace LC3Simulator
         {
             computer.programCounter = 0;
             computer.ClearRegisters();
+            computer.halt = false;
             updateRegText();
         }
 
@@ -164,10 +164,19 @@ namespace LC3Simulator
 
         private void load_Click(object sender, RoutedEventArgs e)
         {
-            loadMachineCode();
+            //LC.Assemble(program.Text);
+            loadMachineCodeFromText();
         }
 
-        private void loadMachineCode()
+        private void loadMachineCode(List<ushort> commands)
+        {
+            for (int i = 0; i < commands.Count; i++)
+            {
+                computer.memory[i] = (short)commands[i];
+            }
+        }
+
+        private void loadMachineCodeFromText()
         {
             computer.programCounter = 0;
             computer.halt = false;
@@ -203,6 +212,11 @@ namespace LC3Simulator
         private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
+        }
+
+        private void assembleBtn_Click(object sender, RoutedEventArgs e)
+        {
+            loadMachineCode(LC.Assemble(program.Text));
         }
     }
 }
