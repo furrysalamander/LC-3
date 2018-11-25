@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
 namespace LC3Simulator
@@ -10,9 +8,9 @@ namespace LC3Simulator
     class LC
     {
         public short[] registers = new short[8];
-        public short[] memory = new short[5000];
+        public short[] memory = new short[ushort.MaxValue];
         public bool halt;
-        public short programCounter;
+        public ushort programCounter;
         bool[] nzp = new bool[3];
 
         public int trapFlag;
@@ -70,20 +68,20 @@ namespace LC3Simulator
                     // checks to see if any of the NZP flags have been met before executing the branch
                     if ((nzp[0] && n) || (nzp[1] && z) || (nzp[2] && p) || (n && p && z))
                     {
-                        programCounter += pc9;
+                        programCounter += (ushort)pc9;
                     }
                     break;
                 case 0b1100: // JMP and RET
-                    programCounter = registers[SR];
+                    programCounter = (ushort)registers[SR];
                     break;
                 case 0b0100: // JSR and JSRR
                     if ((DR & 0b100) == 1)
                     {
                         short o11 = (short)(command << 5);
-                        programCounter += (short)(o11 >> 5);
+                        programCounter += (ushort)(o11 >> 5);
                     }
                     else
-                        programCounter = registers[SR];
+                        programCounter = (ushort)registers[SR];
                     break;
                 case 0b0010: // LD
                     registers[DR] = memory[programCounter + pc9];
@@ -151,6 +149,7 @@ namespace LC3Simulator
             //List<short> assembledProgram;
             List<ushort> machineCode = new List<ushort>();
 
+            inString = inString.Replace("	", " ");
             inString = inString.Replace("\r", "");
             inString = inString.ToUpper();
             List<string> parser = Regex.Replace(inString, ";.*", "").Split('\n').ToList();
@@ -164,7 +163,10 @@ namespace LC3Simulator
             List<List<string>> parsedData = new List<List<string>>();
             foreach (string value in parser)
             {
-                parsedData.Add(value.Split().ToList());
+                parsedData.Add(value.Split().ToList());  // Clean up this Code!
+                for (int i = 0; i < parsedData[parsedData.Count - 1].Count; i++)
+                    if (parsedData[parsedData.Count - 1][i] == "")
+                        parsedData[parsedData.Count - 1].RemoveAt(i);
             }
 
             SymTable symbolTable = new SymTable();
@@ -178,6 +180,7 @@ namespace LC3Simulator
                         startAddress = ConvertNumber(parsedData[i][1]);
                         break;
                     case ".END":
+                        parsedData.RemoveRange(i, parsedData.Count - i);
                         break;
                     case ".BLKW":
                         programCounter += Convert.ToInt32(parsedData[i][1]);
@@ -225,11 +228,15 @@ namespace LC3Simulator
                             parsedData.RemoveAt(i);
                             i--;
                         }
-                        else parsedData[i].RemoveAt(0);
+                        else
+                        {
+                            parsedData[i].RemoveAt(0);
+                            programCounter++;
+                        }
                         break;
                 }
             }
-
+            programCounter = 0;
 
             // PASS 2
             foreach (List<string> command in parsedData)
@@ -239,6 +246,7 @@ namespace LC3Simulator
                 {
                     case ".ORIG":
                         //    startAddress = ConvertNumber(command[i + 1]);
+                        outCommand = ConvertNumber(command[1]);
                         break;
                     case ".END":
                         break;
@@ -249,8 +257,15 @@ namespace LC3Simulator
                     case ".BLKW":
                         break;
                     case ".STRINGZ":
-                        break;
+                        for (int i = 1; i < command[1].Length - 1; i++)
+                        {
+                            outCommand = (ushort)command[1][i];
+                            programCounter++;
+                        }
+                        continue;
+                    //break;
                     case "ADD":
+                        programCounter++;
                         outCommand = 0x1000;
                         outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
                         outCommand |= (ushort)(ConvertRegister(command[2]) << 6);
@@ -261,12 +276,12 @@ namespace LC3Simulator
                         else
                         {
                             outCommand |= 0b100000;
-                            outCommand |= (ushort)(ConvertNumber(command[3]));
+                            outCommand |= (ushort)(ConvertNumber(command[3]) & 0b11111);
                         }
-                        programCounter++;
                         break;
                     case "AND":
                         outCommand = 0x5000;
+                        programCounter++;
                         ushort potato = ConvertRegister(command[1]);
                         outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
                         outCommand |= (ushort)(ConvertRegister(command[2]) << 6);
@@ -277,9 +292,8 @@ namespace LC3Simulator
                         else
                         {
                             outCommand |= 0b100000;
-                            outCommand |= (ushort)(ConvertNumber(command[3]));
+                            outCommand |= (ushort)(ConvertNumber(command[3]) & 0b11111);
                         }
-                        programCounter++;
                         break;
                     case "BR": // THIS NEEDS TO BE FIXED - maybe?
                     case "BRN":
@@ -291,6 +305,13 @@ namespace LC3Simulator
                     case "BRNP":
                         outCommand = 0x0000;
                         programCounter++;
+                        if (command[0].Contains('N'))
+                            outCommand |= 0x800;
+                        if (command[0].Contains('Z'))
+                            outCommand |= 0x400;
+                        if (command[0].Contains('P'))
+                            outCommand |= 0x200;
+                        outCommand |= (ushort)((symbolTable.GetAddress(command[1]) - programCounter) & 0b111111111);
                         break;
                     case "JMP":
                         outCommand = 0xC000;
@@ -303,30 +324,46 @@ namespace LC3Simulator
                     case "JSR":
                         outCommand = 0x4000;
                         programCounter++;
+                        outCommand |= (ushort)((0b11111111111 & (symbolTable.GetAddress(command[1]) - programCounter)) | 0b100000000000);
                         break;
                     case "JSRR":
                         outCommand = 0x4000;
                         programCounter++;
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 6);
                         break;
                     case "LD":
                         outCommand = 0x2000;
                         programCounter++;
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
+                        outCommand |= (ushort)(0b111111111 & (symbolTable.GetAddress(command[2]) - programCounter));
                         break;
                     case "LDI":
                         outCommand = 0xA000;
                         programCounter++;
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
+                        outCommand |= (ushort)(0b111111111 & (symbolTable.GetAddress(command[2]) - programCounter));
                         break;
                     case "LDR":
-                        outCommand = 0x6000;
                         programCounter++;
+                        outCommand = 0x6000;
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
+                        outCommand |= (ushort)(ConvertRegister(command[2]) << 6);
+                        if (command.Count > 3)
+                            outCommand |= (ushort)(0b111111 & ConvertNumber(command[3]));
                         break;
                     case "LEA":
                         outCommand = 0xE000;
                         programCounter++;
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
+                        if (command.Count > 2)
+                            outCommand |= (ushort)(0b111111111 & (symbolTable.GetAddress(command[2]) - programCounter));
                         break;
                     case "NOT":
                         outCommand = 0x9000;
                         programCounter++;
+                        outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
+                        outCommand |= (ushort)(ConvertRegister(command[2]) << 6);
+                        outCommand |= 0b111111;
                         break;
                     case "RTI":
                         outCommand = 0x8000;
@@ -346,8 +383,8 @@ namespace LC3Simulator
                         break;
                     case "TRAP":
                         outCommand = 0xF000;
-                        outCommand |= ConvertNumber(command[1]);
                         programCounter++;
+                        outCommand |= (ushort)(ConvertNumber(command[1]) & 0b11111111);
                         break;
                     case "GETC":
                         outCommand = 0xF020;
@@ -394,10 +431,10 @@ namespace LC3Simulator
             return 0;
         }
 
-        private static ushort ConvertRegister(string inString) => Convert.ToUInt16(inString.Substring(1,1));
-
+        private static ushort ConvertRegister(string inString) => Convert.ToUInt16(inString.Substring(1, 1));
 
     }
+
     public class SymTable
     {
         private List<string> names;
