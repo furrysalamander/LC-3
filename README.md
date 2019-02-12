@@ -2,23 +2,14 @@
 
 An implementation of the LC-3 in C#!
 
-All opcodes except for RTI have been implemented, at least at a basic level.
-
-TRAP does not yet support input.
-
-Honestly, at this point it's really buggy.  But hey, at least it doesn't crash anymore when you have invalid input characters, and it won't let you run opcodes of invalid length.  None of the register text boxes display the values during execution.  Most of the LC-3 code is pretty clean and efficient, but all of the code in the form needs to be overhauled.  
+Now featuring a skeleton assembler.
+All features work fairly well, just needs work on the user interface.
 
 Roadmap:
 
-TRAP character input
-
-Overhaul the form so that all of the boxes work correctly
+Overhaul the form so that all of the boxes and buttons work correctly.
 
 Saving and restoring memory dumps
-
-RTI opcode
-
-An assembler!
 
 Saving and loading programs
 
