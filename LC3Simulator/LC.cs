@@ -18,6 +18,7 @@ namespace LC3Simulator
         public LC()
         {
             programCounter = 0;
+            string [] rom = System.IO.File.ReadAllLines(@"LC3ROM.txt");
         }
 
         public void ParseMachineCode(short command)
@@ -169,7 +170,8 @@ namespace LC3Simulator
                         parsedData[parsedData.Count - 1].RemoveAt(i);
             }
 
-            SymTable symbolTable = new SymTable();
+            Dictionary<string, int> symbolTable = new Dictionary<string, int>();
+            //SymTable symbolTable = new SymTable();
 
             for (int i = 0; i < parsedData.Count; i++)
             {
@@ -221,7 +223,7 @@ namespace LC3Simulator
                         programCounter++;
                         break;
                     default:
-                        symbolTable.AddSymbol(parsedData[i][0], programCounter);
+                        symbolTable.Add(parsedData[i][0], programCounter);
                         // May want to fix this part later, it's kinda sketchy.
                         if (parsedData[i].Count == 1)
                         {
@@ -311,7 +313,7 @@ namespace LC3Simulator
                             outCommand |= 0x400;
                         if (command[0].Contains('P'))
                             outCommand |= 0x200;
-                        outCommand |= (ushort)((symbolTable.GetAddress(command[1]) - programCounter) & 0b111111111);
+                        outCommand |= (ushort)((symbolTable[command[1]] - programCounter) & 0b111111111);
                         break;
                     case "JMP":
                         outCommand = 0xC000;
@@ -324,7 +326,7 @@ namespace LC3Simulator
                     case "JSR":
                         outCommand = 0x4000;
                         programCounter++;
-                        outCommand |= (ushort)((0b11111111111 & (symbolTable.GetAddress(command[1]) - programCounter)) | 0b100000000000);
+                        outCommand |= (ushort)((0b11111111111 & (symbolTable[command[1]] - programCounter)) | 0b100000000000);
                         break;
                     case "JSRR":
                         outCommand = 0x4000;
@@ -335,13 +337,13 @@ namespace LC3Simulator
                         outCommand = 0x2000;
                         programCounter++;
                         outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
-                        outCommand |= (ushort)(0b111111111 & (symbolTable.GetAddress(command[2]) - programCounter));
+                        outCommand |= (ushort)(0b111111111 & (symbolTable[command[2]] - programCounter));
                         break;
                     case "LDI":
                         outCommand = 0xA000;
                         programCounter++;
                         outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
-                        outCommand |= (ushort)(0b111111111 & (symbolTable.GetAddress(command[2]) - programCounter));
+                        outCommand |= (ushort)(0b111111111 & (symbolTable[command[2]] - programCounter));
                         break;
                     case "LDR":
                         programCounter++;
@@ -356,7 +358,7 @@ namespace LC3Simulator
                         programCounter++;
                         outCommand |= (ushort)(ConvertRegister(command[1]) << 9);
                         if (command.Count > 2)
-                            outCommand |= (ushort)(0b111111111 & (symbolTable.GetAddress(command[2]) - programCounter));
+                            outCommand |= (ushort)(0b111111111 & (symbolTable[command[2]] - programCounter));
                         break;
                     case "NOT":
                         outCommand = 0x9000;
@@ -433,9 +435,15 @@ namespace LC3Simulator
 
         private static ushort ConvertRegister(string inString) => Convert.ToUInt16(inString.Substring(1, 1));
 
+        private static ushort sillyButtons(string potato)
+        {
+            return (ushort)5;
+        }
+
     }
 
-    public class SymTable
+/* Has been replaced by Dictionary Type
+ * public class SymTable
     {
         private List<string> names;
         private List<int> addresses;
@@ -463,5 +471,5 @@ namespace LC3Simulator
             throw new IndexOutOfRangeException();
         }
     }
-
+    */
 }
