@@ -18,7 +18,7 @@ namespace LC3Simulator
         public LC()
         {
             programCounter = 0;
-            string [] rom = System.IO.File.ReadAllLines(@"LC3ROM.txt");
+            //string [] rom = System.IO.File.ReadAllLines(@"LC3ROM.txt");
         }
 
         public void ParseMachineCode(short command)
